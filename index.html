@@ -1,164 +1,267 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Kompas Kiblat</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-    <link rel="stylesheet" href="style.css">
+    <title>PANRITA FALAK</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
 </head>
+
 
 <body>
 
 <div class="container">
 
-    <h1>🕋 PANRITA FALAK
-    </h1>
+    <h1>PANRITA FALAK</h1>
 
-    <p>GPS + Kompas menuju Ka'bah</p>
-    <div class="prayer-card">
-
-    <h2>🕌 WAKTU SALAT</h2>
-
-    <div class="clock" id="realTimeClock">
-        --:--:--
-    </div>
-
-    <div class="prayer-list">
-
-        <div class="prayer-item">
-            <span>Subuh</span>
-            <span id="subuh">--:--</span>
-        </div>
-
-        <div class="prayer-item">
-            <span>Terbit</span>
-            <span id="terbit">--:--</span>
-        </div>
-
-        <div class="prayer-item">
-            <span>Zuhur</span>
-            <span id="zuhur">--:--</span>
-        </div>
-
-        <div class="prayer-item">
-            <span>Asar</span>
-            <span id="asar">--:--</span>
-        </div>
-
-        <div class="prayer-item">
-            <span>Magrib</span>
-            <span id="magrib">--:--</span>
-        </div>
-
-        <div class="prayer-item">
-            <span>Isya</span>
-            <span id="isya">--:--</span>
-        </div>
-
-    </div>
-
-    <div id="nextPrayer">
-        Menunggu lokasi GPS...
-    </div>
-
-</div>
-
-    <button id="startButton">
-        📍 MULAI GPS & KOMPAS
-    </button>
-     <button id="earthButton">
-    🌍 BUKA LOKASI DI GOOGLE EARTH UNTUK MLIHAT LOKASIMU
-</button>
-
-
-    <div class="result">
-
-        <h2>📍 Lokasi</h2>
-
-        <p>
-            Latitude:
-            <strong id="latitude">-</strong>
-        </p>
-
-        <p>
-            Longitude:
-            <strong id="longitude">-</strong>
-        </p>
-
-        <p>
-            Akurasi GPS:
-            <strong id="accuracy">-</strong>
-        </p>
-
-    </div>
-
-  <div class="compass">
-
-    <div class="direction north">N</div>
-    <div class="direction east">E</div>
-    <div class="direction south">S</div>
-    <div class="direction west">W</div>
-
-    <!-- TITIK PUTAR JARUM -->
-    <div id="needle">
-
-        <!-- JARUM -->
-        <div id="arrow"></div>
-
-    </div>
-
-    <!-- KA'BAH -->
-    <div id="kaabah">🕋</div>
-
-    <!-- TITIK TENGAH -->
-    <div class="center"></div>
-
-</div>
-
-    <div class="result">
-
-        <h2>🧭 Informasi Arah</h2>
-
-        <p>
-            Arah HP:
-            <strong id="heading">-</strong>
-        </p>
-
-        <p>
-            Azimut Kiblat:
-            <strong id="qibla">-</strong>
-        </p>
-
-        <p>
-            Selisih:
-            <strong id="difference">-</strong>
-        </p>
-
-        <p>
-            Jarak Ka'bah:
-            <strong id="distance">-</strong>
-        </p>
-
-    </div>
-
-    <p id="status">
-        Tekan tombol untuk memulai.
+    <p class="subtitle">
+        Kompas Kiblat & Waktu Salat
     </p>
 
+
+    <!-- ========================================= -->
+    <!-- GPS -->
+    <!-- ========================================= -->
+
+    <div class="card">
+
+        <h2>📍 LOKASI GPS</h2>
+
+        <div class="info-row">
+            <span>Latitude</span>
+            <strong id="latitude">--</strong>
+        </div>
+
+        <div class="info-row">
+            <span>Longitude</span>
+            <strong id="longitude">--</strong>
+        </div>
+
+        <div class="info-row">
+            <span>Akurasi GPS</span>
+            <strong id="accuracy">--</strong>
+        </div>
+
+    </div>
+
+
+    <!-- ========================================= -->
+    <!-- KIBLAT -->
+    <!-- ========================================= -->
+
+    <div class="card">
+
+        <h2>🕋 ARAH KIBLAT</h2>
+
+        <div class="big-value">
+            <span id="qibla">--</span>
+        </div>
+
+        <p class="label">
+            Azimuth dari Utara
+        </p>
+
+        <div class="info-row">
+            <span>Jarak Ka'bah</span>
+            <strong id="distance">--</strong>
+        </div>
+
+    </div>
+
+
+    <!-- ========================================= -->
+    <!-- KOMPAS -->
+    <!-- ========================================= -->
+
+    <div class="card">
+
+        <h2>🧭 KOMPAS KIBLAT</h2>
+
+        <div class="compass">
+
+            <div class="direction north">
+                N
+            </div>
+
+            <div class="direction east">
+                E
+            </div>
+
+            <div class="direction south">
+                S
+            </div>
+
+            <div class="direction west">
+                W
+            </div>
+
+
+            <div id="needle">
+
+                <div id="arrow"></div>
+
+            </div>
+
+
+            <div id="kaabah">
+                🕋
+            </div>
+
+
+            <div class="center"></div>
+
+        </div>
+
+
+        <div class="compass-data">
+
+            <div>
+                <span>Arah HP</span>
+                <strong id="heading">
+                    --
+                </strong>
+            </div>
+
+            <div>
+                <span>Selisih</span>
+                <strong id="difference">
+                    --
+                </strong>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================= -->
+    <!-- TOMBOL -->
+    <!-- ========================================= -->
+
+    <button
+        id="startButton"
+        class="main-button"
+    >
+        📍 MULAI GPS & KOMPAS
+    </button>
+
+
+    <button
+        id="earthButton"
+        class="earth-button"
+    >
+        🌍 BUKA LOKASI DI GOOGLE EARTH
+    </button>
+
+
+    <!-- ========================================= -->
+    <!-- STATUS -->
+    <!-- ========================================= -->
+
+    <div
+        id="status"
+        class="status"
+    >
+        Belum dimulai
+    </div>
+
+
+    <!-- ========================================= -->
+    <!-- JAM & SALAT -->
+    <!-- ========================================= -->
+
+    <div class="prayer-card">
+
+        <h2>🕌 WAKTU SALAT</h2>
+
+
+        <div
+            id="realTimeClock"
+            class="clock"
+        >
+            --:--:--
+        </div>
+
+
+        <div class="prayer-list">
+
+            <div class="prayer-item">
+                <span>Subuh</span>
+                <strong id="subuh">
+                    --:--
+                </strong>
+            </div>
+
+
+            <div class="prayer-item">
+                <span>Terbit</span>
+                <strong id="terbit">
+                    --:--
+                </strong>
+            </div>
+
+
+            <div class="prayer-item">
+                <span>Zuhur</span>
+                <strong id="zuhur">
+                    --:--
+                </strong>
+            </div>
+
+
+            <div class="prayer-item">
+                <span>Asar</span>
+                <strong id="asar">
+                    --:--
+                </strong>
+            </div>
+
+
+            <div class="prayer-item">
+                <span>Magrib</span>
+                <strong id="magrib">
+                    --:--
+                </strong>
+            </div>
+
+
+            <div class="prayer-item">
+                <span>Isya</span>
+                <strong id="isya">
+                    --:--
+                </strong>
+            </div>
+
+        </div>
+
+
+        <div
+            id="nextPrayer"
+            class="next-prayer"
+        >
+            Menunggu lokasi GPS...
+        </div>
+
+    </div>
+
+
 </div>
+
 
 <script src="app.js"></script>
 
 </body>
+
 </html>
-<div class="earth-section">
-
-    <h2>🌍 Google Earth</h2>
-
-    <p>
-        Lihat lokasi dan peta secara langsung melalui Google Earth.
-    </p>
-</div>
-<link rel="stylesheet" href="style.css">

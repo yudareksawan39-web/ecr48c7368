@@ -1,154 +1,270 @@
 // ======================================================
 // PANRITA FALAK
-// GPS + KOMPAS + KIBLAT + JARAK KA'BAH
-// GOOGLE EARTH + JAM REAL-TIME + WAKTU SALAT
+// GPS + KOMPAS + KIBLAT + WAKTU SALAT
+// ======================================================
+
+
+// ======================================================
+// KOORDINAT KA'BAH
 // ======================================================
 
 const KAABAH_LAT = 21.422487;
 const KAABAH_LON = 39.826206;
 
+
+// ======================================================
+// VARIABEL
+// ======================================================
+
 let currentLatitude = null;
 let currentLongitude = null;
 
 let qiblaAzimuth = null;
+
 let currentHeading = null;
 
+let filteredHeading = null;
+
 let gpsStarted = false;
+
 let compassStarted = false;
 
-let filteredHeading = null;
-let absoluteHeadingReceived = false;
+let prayerTimesToday = null;
 
 
 // ======================================================
-// MATEMATIKA DASAR
+// MATEMATIKA
 // ======================================================
 
 function toRadians(deg) {
+
     return deg * Math.PI / 180;
 }
 
+
 function toDegrees(rad) {
+
     return rad * 180 / Math.PI;
 }
 
+
 function normalizeAngle(angle) {
-    return ((angle % 360) + 360) % 360;
+
+    return (
+        (angle % 360) + 360
+    ) % 360;
 }
 
 
 // ======================================================
-// HITUNG ARAH KIBLAT
+// ARAH KIBLAT
 // ======================================================
 
-function calculateQibla(lat, lon) {
+function calculateQibla(
+    lat,
+    lon
+) {
 
-    const lat1 = toRadians(lat);
-    const lat2 = toRadians(KAABAH_LAT);
+    const lat1 =
+        toRadians(lat);
+
+    const lat2 =
+        toRadians(
+            KAABAH_LAT
+        );
+
 
     const deltaLon =
-        toRadians(KAABAH_LON - lon);
+        toRadians(
+            KAABAH_LON - lon
+        );
+
 
     const y =
-        Math.sin(deltaLon) * Math.cos(lat2);
+        Math.sin(deltaLon) *
+        Math.cos(lat2);
+
 
     const x =
-        Math.cos(lat1) * Math.sin(lat2) -
+        Math.cos(lat1) *
+        Math.sin(lat2)
+
+        -
+
         Math.sin(lat1) *
         Math.cos(lat2) *
         Math.cos(deltaLon);
 
+
+    const bearing =
+        toDegrees(
+            Math.atan2(
+                y,
+                x
+            )
+        );
+
+
     return normalizeAngle(
-        toDegrees(Math.atan2(y, x))
+        bearing
     );
 }
 
 
 // ======================================================
-// HITUNG JARAK KE KA'BAH
+// JARAK KA'BAH
 // ======================================================
 
-function calculateDistance(lat1, lon1, lat2, lon2) {
+function calculateDistance(
+    lat1,
+    lon1,
+    lat2,
+    lon2
+) {
 
     const R = 6371;
 
-    const dLat = toRadians(lat2 - lat1);
-    const dLon = toRadians(lon2 - lon1);
+
+    const dLat =
+        toRadians(
+            lat2 - lat1
+        );
+
+
+    const dLon =
+        toRadians(
+            lon2 - lon1
+        );
+
 
     const a =
-        Math.sin(dLat / 2) ** 2 +
-        Math.cos(toRadians(lat1)) *
-        Math.cos(toRadians(lat2)) *
-        Math.sin(dLon / 2) ** 2;
+        Math.sin(
+            dLat / 2
+        ) ** 2
+
+        +
+
+        Math.cos(
+            toRadians(lat1)
+        ) *
+
+        Math.cos(
+            toRadians(lat2)
+        ) *
+
+        Math.sin(
+            dLon / 2
+        ) ** 2;
+
 
     const c =
         2 *
+
         Math.atan2(
             Math.sqrt(a),
             Math.sqrt(1 - a)
         );
+
 
     return R * c;
 }
 
 
 // ======================================================
-// GPS
+// GPS BERHASIL
 // ======================================================
 
 function updateGPS(position) {
 
-    const lat = position.coords.latitude;
-    const lon = position.coords.longitude;
-    const accuracy = position.coords.accuracy;
+    const lat =
+        position.coords.latitude;
+
+    const lon =
+        position.coords.longitude;
+
+    const accuracy =
+        position.coords.accuracy;
+
 
     currentLatitude = lat;
+
     currentLongitude = lon;
 
+
+    // Latitude
     const latitudeElement =
-        document.getElementById("latitude");
+        document.getElementById(
+            "latitude"
+        );
 
-    const longitudeElement =
-        document.getElementById("longitude");
-
-    const accuracyElement =
-        document.getElementById("accuracy");
 
     if (latitudeElement) {
+
         latitudeElement.textContent =
-            lat.toFixed(6) + "°";
+            lat.toFixed(6) +
+            "°";
     }
+
+
+    // Longitude
+    const longitudeElement =
+        document.getElementById(
+            "longitude"
+        );
+
 
     if (longitudeElement) {
+
         longitudeElement.textContent =
-            lon.toFixed(6) + "°";
+            lon.toFixed(6) +
+            "°";
     }
+
+
+    // Akurasi
+    const accuracyElement =
+        document.getElementById(
+            "accuracy"
+        );
+
 
     if (accuracyElement) {
+
         accuracyElement.textContent =
-            "± " + accuracy.toFixed(1) + " m";
+            "± " +
+            accuracy.toFixed(1) +
+            " m";
     }
 
 
-    // -----------------------------
+    // ==================================================
     // KIBLAT
-    // -----------------------------
+    // ==================================================
 
     qiblaAzimuth =
-        calculateQibla(lat, lon);
+        calculateQibla(
+            lat,
+            lon
+        );
+
 
     const qiblaElement =
-        document.getElementById("qibla");
+        document.getElementById(
+            "qibla"
+        );
+
 
     if (qiblaElement) {
+
         qiblaElement.textContent =
-            qiblaAzimuth.toFixed(1) + "°";
+            qiblaAzimuth.toFixed(1) +
+            "°";
     }
 
 
-    // -----------------------------
+    // ==================================================
     // JARAK
-    // -----------------------------
+    // ==================================================
 
     const distance =
         calculateDistance(
@@ -158,86 +274,120 @@ function updateGPS(position) {
             KAABAH_LON
         );
 
+
     const distanceElement =
-        document.getElementById("distance");
+        document.getElementById(
+            "distance"
+        );
+
 
     if (distanceElement) {
+
         distanceElement.textContent =
-            distance.toFixed(1) + " km";
+            distance.toFixed(1) +
+            " km";
     }
 
 
-    // -----------------------------
+    // ==================================================
     // WAKTU SALAT
-    // -----------------------------
+    // ==================================================
 
-    
-calculatePrayerTimes(
-    lat,
-    lon
-);
-
-
-// -----------------------------
-// STATUS
-// -----------------------------
-
-const status =
-    document.getElementById("status");
-
-if (status) {
-    status.textContent =
-        "✓ GPS aktif — waktu salat berhasil dihitung.";
-}
+    calculatePrayerTimes(
+        lat,
+        lon
+    );
 
 
-if (currentHeading !== null) {
-    updateNeedle();
-}
+    // ==================================================
+    // KOMPAS
+    // ==================================================
 
+    if (
+        currentHeading !== null
+    ) {
 
-function gpsError(error) {
+        updateNeedle();
+    }
+
 
     const status =
-        document.getElementById("status");
+        document.getElementById(
+            "status"
+        );
+
 
     if (status) {
 
         status.textContent =
-            "GPS error: " + error.message;
+            "✓ GPS aktif";
     }
-
-    console.error("GPS ERROR:", error);
 }
 
 
+// ======================================================
+// GPS ERROR
+// ======================================================
+
+function gpsError(error) {
+
+    const status =
+        document.getElementById(
+            "status"
+        );
+
+
+    if (status) {
+
+        status.textContent =
+            "GPS error: " +
+            error.message;
+    }
+
+
+    console.error(
+        "GPS ERROR:",
+        error
+    );
+}
+
+
+// ======================================================
+// MULAI GPS
+// ======================================================
+
 function startGPS() {
 
-    if (!navigator.geolocation) {
+    if (
+        !navigator.geolocation
+    ) {
 
-        const status =
-            document.getElementById("status");
-
-        if (status) {
-            status.textContent =
-                "Browser tidak mendukung GPS.";
-        }
+        document.getElementById(
+            "status"
+        ).textContent =
+            "Browser tidak mendukung GPS.";
 
         return;
     }
+
 
     if (gpsStarted) {
+
         return;
     }
 
+
     gpsStarted = true;
+
 
     navigator.geolocation.watchPosition(
         updateGPS,
         gpsError,
         {
             enableHighAccuracy: true,
+
             maximumAge: 0,
+
             timeout: 15000
         }
     );
@@ -245,15 +395,22 @@ function startGPS() {
 
 
 // ======================================================
-// KOMPAS
+// FILTER KOMPAS
 // ======================================================
 
-function smoothHeading(newHeading) {
+function smoothHeading(
+    newHeading
+) {
 
     newHeading =
-        normalizeAngle(newHeading);
+        normalizeAngle(
+            newHeading
+        );
 
-    if (filteredHeading === null) {
+
+    if (
+        filteredHeading === null
+    ) {
 
         filteredHeading =
             newHeading;
@@ -261,40 +418,60 @@ function smoothHeading(newHeading) {
         return filteredHeading;
     }
 
+
     let difference =
         normalizeAngle(
             newHeading -
             filteredHeading
         );
 
-    if (difference > 180) {
+
+    if (
+        difference > 180
+    ) {
+
         difference -= 360;
     }
 
-    const smoothing = 0.18;
+
+    const smoothing =
+        0.18;
+
 
     filteredHeading =
         normalizeAngle(
             filteredHeading +
-            difference * smoothing
+            difference *
+            smoothing
         );
+
 
     return filteredHeading;
 }
 
 
-function handleOrientation(event) {
+// ======================================================
+// SENSOR KOMPAS
+// ======================================================
+
+function handleOrientation(
+    event
+) {
 
     let heading = null;
 
 
-    // -----------------------------
+    // ----------------------------------------------
     // iPhone / Safari
-    // -----------------------------
+    // ----------------------------------------------
 
     if (
-        typeof event.webkitCompassHeading === "number" &&
-        !isNaN(event.webkitCompassHeading)
+        typeof event.webkitCompassHeading ===
+            "number" &&
+
+        !isNaN(
+            event.webkitCompassHeading
+        )
     ) {
 
         heading =
@@ -302,33 +479,35 @@ function handleOrientation(event) {
     }
 
 
-    // -----------------------------
+    // ----------------------------------------------
     // SENSOR ABSOLUT
-    // -----------------------------
+    // ----------------------------------------------
 
     else if (
         event.absolute === true &&
-        typeof event.alpha === "number"
+
+        typeof event.alpha ===
+            "number"
     ) {
 
         heading =
-            360 - event.alpha;
-
-        absoluteHeadingReceived = true;
+            360 -
+            event.alpha;
     }
 
 
-    // -----------------------------
+    // ----------------------------------------------
     // FALLBACK
-    // -----------------------------
+    // ----------------------------------------------
 
     else if (
-        !absoluteHeadingReceived &&
-        typeof event.alpha === "number"
+        typeof event.alpha ===
+            "number"
     ) {
 
         heading =
-            360 - event.alpha;
+            360 -
+            event.alpha;
     }
 
 
@@ -336,24 +515,34 @@ function handleOrientation(event) {
         heading === null ||
         isNaN(heading)
     ) {
+
         return;
     }
 
 
     heading =
-        normalizeAngle(heading);
+        normalizeAngle(
+            heading
+        );
+
 
     currentHeading =
-        smoothHeading(heading);
+        smoothHeading(
+            heading
+        );
 
 
     const headingElement =
-        document.getElementById("heading");
+        document.getElementById(
+            "heading"
+        );
+
 
     if (headingElement) {
 
         headingElement.textContent =
-            currentHeading.toFixed(1) + "°";
+            currentHeading.toFixed(1) +
+            "°";
     }
 
 
@@ -369,8 +558,10 @@ function updateNeedle() {
 
     if (
         qiblaAzimuth === null ||
+
         currentHeading === null
     ) {
+
         return;
     }
 
@@ -385,23 +576,34 @@ function updateNeedle() {
     let displayDifference =
         difference;
 
-    if (displayDifference > 180) {
+
+    if (
+        displayDifference > 180
+    ) {
+
         displayDifference -= 360;
     }
 
 
     const differenceElement =
-        document.getElementById("difference");
+        document.getElementById(
+            "difference"
+        );
+
 
     if (differenceElement) {
 
         differenceElement.textContent =
-            displayDifference.toFixed(1) + "°";
+            displayDifference.toFixed(1) +
+            "°";
     }
 
 
     const needle =
-        document.getElementById("needle");
+        document.getElementById(
+            "needle"
+        );
+
 
     if (needle) {
 
@@ -411,12 +613,17 @@ function updateNeedle() {
 
 
     const status =
-        document.getElementById("status");
+        document.getElementById(
+            "status"
+        );
+
 
     if (status) {
 
         if (
-            Math.abs(displayDifference) <= 3
+            Math.abs(
+                displayDifference
+            ) <= 3
         ) {
 
             status.textContent =
@@ -425,35 +632,54 @@ function updateNeedle() {
         } else {
 
             status.textContent =
-                "Arahkan jarum ke kiblat.";
+                "Kompas aktif — arahkan jarum ke kiblat.";
         }
     }
 }
 
 
 // ======================================================
-// IZIN SENSOR KOMPAS
+// IZIN SENSOR + MULAI KOMPAS
 // ======================================================
 
 async function startCompass() {
 
     if (compassStarted) {
+
         return;
     }
 
+
     try {
 
+        // ------------------------------------------
+        // iOS / browser yang membutuhkan izin
+        // ------------------------------------------
+
         if (
-            typeof DeviceOrientationEvent !== "undefined" &&
-            typeof DeviceOrientationEvent.requestPermission === "function"
+            typeof DeviceOrientationEvent !==
+                "undefined" &&
+
+            typeof DeviceOrientationEvent
+                .requestPermission ===
+                "function"
         ) {
 
             const permission =
-                await DeviceOrientationEvent.requestPermission(true);
+                await DeviceOrientationEvent
+                    .requestPermission(
+                        true
+                    );
 
-            if (permission !== "granted") {
 
-                document.getElementById("status").textContent =
+            if (
+                permission !==
+                "granted"
+            ) {
+
+                document.getElementById(
+                    "status"
+                ).textContent =
                     "Izin sensor kompas ditolak.";
 
                 return;
@@ -461,12 +687,20 @@ async function startCompass() {
         }
 
 
+        // ------------------------------------------
+        // Sensor absolut
+        // ------------------------------------------
+
         window.addEventListener(
             "deviceorientationabsolute",
             handleOrientation,
             true
         );
 
+
+        // ------------------------------------------
+        // Sensor biasa
+        // ------------------------------------------
 
         window.addEventListener(
             "deviceorientation",
@@ -478,25 +712,36 @@ async function startCompass() {
         compassStarted = true;
 
 
-        document.getElementById("status").textContent =
-            "Kompas aktif. Putar HP perlahan untuk kalibrasi.";
+        document.getElementById(
+            "status"
+        ).textContent =
+            "✓ Sensor kompas aktif.";
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "COMPASS ERROR:",
+            error
+        );
 
-        document.getElementById("status").textContent =
+
+        document.getElementById(
+            "status"
+        ).textContent =
             "Sensor kompas tidak dapat digunakan.";
     }
 }
 
 
 // ======================================================
-// TOMBOL GPS + KOMPAS
+// TOMBOL MULAI
 // ======================================================
 
 const startButton =
-    document.getElementById("startButton");
+    document.getElementById(
+        "startButton"
+    );
+
 
 if (startButton) {
 
@@ -504,15 +749,14 @@ if (startButton) {
         "click",
         async function () {
 
-            const status =
-                document.getElementById("status");
+            document.getElementById(
+                "status"
+            ).textContent =
+                "Memulai GPS dan kompas...";
 
-            if (status) {
-                status.textContent =
-                    "Memulai GPS dan kompas...";
-            }
 
             startGPS();
+
 
             await startCompass();
         }
@@ -525,7 +769,10 @@ if (startButton) {
 // ======================================================
 
 const earthButton =
-    document.getElementById("earthButton");
+    document.getElementById(
+        "earthButton"
+    );
+
 
 if (earthButton) {
 
@@ -548,8 +795,11 @@ if (earthButton) {
 
             const earthURL =
                 "https://earth.google.com/web/search/" +
+
                 currentLatitude +
+
                 "," +
+
                 currentLongitude;
 
 
@@ -571,23 +821,39 @@ function updateRealTimeClock() {
     const now =
         new Date();
 
+
     const hours =
-        String(now.getHours())
-            .padStart(2, "0");
+        String(
+            now.getHours()
+        ).padStart(
+            2,
+            "0"
+        );
+
 
     const minutes =
-        String(now.getMinutes())
-            .padStart(2, "0");
+        String(
+            now.getMinutes()
+        ).padStart(
+            2,
+            "0"
+        );
+
 
     const seconds =
-        String(now.getSeconds())
-            .padStart(2, "0");
+        String(
+            now.getSeconds()
+        ).padStart(
+            2,
+            "0"
+        );
 
 
     const clock =
         document.getElementById(
             "realTimeClock"
         );
+
 
     if (clock) {
 
@@ -602,6 +868,7 @@ function updateRealTimeClock() {
 
 updateRealTimeClock();
 
+
 setInterval(
     updateRealTimeClock,
     1000
@@ -609,66 +876,48 @@ setInterval(
 
 
 // ======================================================
-// PERHITUNGAN WAKTU SALAT
+// PARAMETER WAKTU SALAT
 // ======================================================
 
-// Parameter waktu
 const PRAYER_ANGLES = {
 
-    fajr: 20,       // Kemenag
-    sunrise: 0.833,
-    sunset: 0.833,
-    isha: 18,       // Kemenag
-    dhuhr: 0
+    // Subuh
+    fajr: 20,
 
+    // Matahari terbit/terbenam
+    sunrise: 0.833,
+
+    sunset: 0.833,
+
+    // Isya
+    isha: 18
 };
 
 
 // ======================================================
-// JULIAN DAY
+// DAY OF YEAR
 // ======================================================
 
-function julianDate(date) {
+function getDayOfYear(
+    date
+) {
 
-    const year =
-        date.getUTCFullYear();
-
-    const month =
-        date.getUTCMonth() + 1;
-
-    const day =
-        date.getUTCDate();
-
-
-    let Y = year;
-    let M = month;
-
-    if (M <= 2) {
-        Y -= 1;
-        M += 12;
-    }
+    const start =
+        new Date(
+            date.getFullYear(),
+            0,
+            0
+        );
 
 
-    const A =
-        Math.floor(Y / 100);
-
-    const B =
-        2 -
-        A +
-        Math.floor(A / 4);
+    const diff =
+        date - start;
 
 
     return Math.floor(
-        365.25 * (Y + 4716)
-    )
-    +
-    Math.floor(
-        30.6001 * (M + 1)
-    )
-    +
-    day +
-    B -
-    1524.5;
+        diff /
+        86400000
+    );
 }
 
 
@@ -676,100 +925,78 @@ function julianDate(date) {
 // POSISI MATAHARI
 // ======================================================
 
-function solarPosition(date) {
+function solarPosition(
+    date
+) {
 
-    const jd =
-        julianDate(date);
-
-    const D =
-        jd - 2451545.0;
-
-
-    const g =
-        normalizeAngle(
-            357.529 +
-            0.98560028 * D
+    const day =
+        getDayOfYear(
+            date
         );
 
 
-    const q =
-        normalizeAngle(
-            280.459 +
-            0.98564736 * D
-        );
-
-
-    const L =
-        normalizeAngle(
-            q +
-            1.915 * Math.sin(toRadians(g)) +
-            0.020 *
-            Math.sin(toRadians(2 * g))
-        );
-
-
-    const e =
-        23.439 -
-        0.00000036 * D;
-
-
-    const RA =
-        toDegrees(
-            Math.atan2(
-                Math.cos(toRadians(e)) *
-                Math.sin(toRadians(L)),
-                Math.cos(toRadians(L))
-            )
-        ) / 15;
-
-
-    const declination =
-        toDegrees(
-            Math.asin(
-                Math.sin(toRadians(e)) *
-                Math.sin(toRadians(L))
-            )
-        );
-
-
-    const rightAscension =
-        normalizeAngle(RA * 15) / 15;
-
-
-    const GMST =
-        18.697374558 +
-        24.06570982441908 * D;
+    const gamma =
+        2 *
+        Math.PI /
+        365 *
+        (day - 1);
 
 
     const equationOfTime =
-        normalizeHours(
-            GMST -
-            rightAscension
+        229.18 *
+        (
+            0.000075 +
+
+            0.001868 *
+            Math.cos(gamma) -
+
+            0.032077 *
+            Math.sin(gamma) -
+
+            0.014615 *
+            Math.cos(2 * gamma) -
+
+            0.040849 *
+            Math.sin(2 * gamma)
         );
 
 
+    const declination =
+        0.006918 -
+
+        0.399912 *
+        Math.cos(gamma) +
+
+        0.070257 *
+        Math.sin(gamma) -
+
+        0.006758 *
+        Math.cos(2 * gamma) +
+
+        0.000907 *
+        Math.sin(2 * gamma) -
+
+        0.002697 *
+        Math.cos(3 * gamma) +
+
+        0.00148 *
+        Math.sin(3 * gamma);
+
+
     return {
-        declination,
-        equationOfTime
+
+        equationOfTime,
+
+        declination:
+            toDegrees(
+                declination
+            )
     };
 }
 
 
-function normalizeHours(hours) {
-
-    let result =
-        hours % 24;
-
-    if (result < 0) {
-        result += 24;
-    }
-
-    return result;
-}
-
-
 // ======================================================
-// SUDUT MATAHARI
+// HOUR ANGLE MATAHARI
 // ======================================================
 
 function solarHourAngle(
@@ -779,35 +1006,52 @@ function solarHourAngle(
 ) {
 
     const lat =
-        toRadians(latitude);
+        toRadians(
+            latitude
+        );
+
 
     const dec =
-        toRadians(declination);
+        toRadians(
+            declination
+        );
+
 
     const alt =
-        toRadians(altitude);
+        toRadians(
+            altitude
+        );
 
 
     const cosH =
         (
             Math.sin(alt) -
+
             Math.sin(lat) *
             Math.sin(dec)
         )
+
         /
+
         (
             Math.cos(lat) *
             Math.cos(dec)
         );
 
 
-    if (cosH < -1 || cosH > 1) {
+    if (
+        cosH < -1 ||
+        cosH > 1
+    ) {
+
         return null;
     }
 
 
     return toDegrees(
-        Math.acos(cosH)
+        Math.acos(
+            cosH
+        )
     );
 }
 
@@ -826,31 +1070,40 @@ function calculatePrayerTimes(
 
 
     const solar =
-        solarPosition(now);
-
-
-    const declination =
-        solar.declination;
+        solarPosition(
+            now
+        );
 
 
     const equationOfTime =
         solar.equationOfTime;
 
 
-    // Zona waktu perangkat
+    const declination =
+        solar.declination;
+
+
+    // Zona waktu HP
     const timezone =
-        -now.getTimezoneOffset() / 60;
+        -now.getTimezoneOffset()
+        / 60;
 
 
-    // Tengah hari matahari
+    // Solar noon
     const solarNoon =
-        12 -
-        equationOfTime -
-        longitude / 15 +
-        timezone;
+        720 -
+
+        4 * longitude -
+
+        equationOfTime +
+
+        timezone * 60;
 
 
-    // Subuh
+    // ----------------------------------------------
+    // SUBUH
+    // ----------------------------------------------
+
     const fajrAngle =
         solarHourAngle(
             latitude,
@@ -859,7 +1112,10 @@ function calculatePrayerTimes(
         );
 
 
-    // Terbit
+    // ----------------------------------------------
+    // TERBIT
+    // ----------------------------------------------
+
     const sunriseAngle =
         solarHourAngle(
             latitude,
@@ -868,7 +1124,10 @@ function calculatePrayerTimes(
         );
 
 
-    // Magrib
+    // ----------------------------------------------
+    // MAGRIB
+    // ----------------------------------------------
+
     const sunsetAngle =
         solarHourAngle(
             latitude,
@@ -877,7 +1136,10 @@ function calculatePrayerTimes(
         );
 
 
-    // Isya
+    // ----------------------------------------------
+    // ISYA
+    // ----------------------------------------------
+
     const ishaAngle =
         solarHourAngle(
             latitude,
@@ -886,20 +1148,28 @@ function calculatePrayerTimes(
         );
 
 
-    // Asar - shadow factor 1
+    // ----------------------------------------------
+    // ASAR
+    // ----------------------------------------------
+
+    const latitudeDifference =
+        Math.abs(
+            toRadians(
+                latitude -
+                declination
+            )
+        );
+
+
     const asrAltitude =
-        -toDegrees(
+        toDegrees(
             Math.atan(
                 1 /
                 (
                     1 +
+
                     Math.tan(
-                        Math.abs(
-                            toRadians(
-                                latitude -
-                                declination
-                            )
-                        )
+                        latitudeDifference
                     )
                 )
             )
@@ -914,42 +1184,60 @@ function calculatePrayerTimes(
         );
 
 
+    // ----------------------------------------------
+    // HASIL
+    // ----------------------------------------------
+
     const prayers = {
 
         subuh:
             fajrAngle === null
                 ? null
-                : solarNoon -
-                  fajrAngle / 15,
+                :
+                solarNoon -
+                fajrAngle / 15,
+
 
         terbit:
             sunriseAngle === null
                 ? null
-                : solarNoon -
-                  sunriseAngle / 15,
+                :
+                solarNoon -
+                sunriseAngle / 15,
+
 
         zuhur:
-            solarNoon,
+            solarNoon + 1 / 60,
+
 
         asar:
             asrAngle === null
                 ? null
-                : solarNoon +
-                  asrAngle / 15,
+                :
+                solarNoon +
+                asrAngle / 15,
+
 
         magrib:
             sunsetAngle === null
                 ? null
-                : solarNoon +
-                  sunsetAngle / 15,
+                :
+                solarNoon +
+                sunsetAngle / 15,
+
 
         isya:
             ishaAngle === null
                 ? null
-                : solarNoon +
-                  ishaAngle / 15
+                :
+                solarNoon +
+                ishaAngle / 15
 
     };
+
+
+    prayerTimesToday =
+        prayers;
 
 
     displayPrayerTimes(
@@ -959,63 +1247,75 @@ function calculatePrayerTimes(
 
 
 // ======================================================
-// FORMAT WAKTU
+// FORMAT JAM SALAT
 // ======================================================
 
-function formatPrayerTime(hours) {
+function formatPrayerTime(
+    decimalHours
+) {
 
     if (
-        hours === null ||
-        !isFinite(hours)
+        decimalHours === null ||
+        !isFinite(decimalHours)
     ) {
 
         return "--:--";
     }
 
 
-    hours =
-        normalizeHours(hours);
+    decimalHours =
+        (
+            decimalHours % 24 +
+            24
+        ) % 24;
 
 
-    const h =
-        Math.floor(hours);
+    let hours =
+        Math.floor(
+            decimalHours
+        );
 
 
-    const minutesDecimal =
-        (hours - h) * 60;
+    let minutes =
+        Math.round(
+            (
+                decimalHours -
+                hours
+            ) * 60
+        );
 
 
-    const m =
-        Math.round(minutesDecimal);
+    if (
+        minutes >= 60
+    ) {
 
+        minutes = 0;
 
-    let finalHour =
-        h;
+        hours++;
 
-    let finalMinute =
-        m;
-
-
-    if (finalMinute >= 60) {
-
-        finalMinute = 0;
-
-        finalHour++;
-
+        hours %= 24;
     }
 
 
-    finalHour %= 24;
-
-
     return (
-        String(finalHour)
-            .padStart(2, "0")
+
+        String(hours)
+            .padStart(
+                2,
+                "0"
+            )
+
         +
+
         ":"
+
         +
-        String(finalMinute)
-            .padStart(2, "0")
+
+        String(minutes)
+            .padStart(
+                2,
+                "0"
+            )
     );
 }
 
@@ -1024,44 +1324,95 @@ function formatPrayerTime(hours) {
 // TAMPILKAN WAKTU SALAT
 // ======================================================
 
-let prayerTimesToday = null;
+function displayPrayerTimes(
+    prayers
+) {
 
+    const elements = {
 
-function displayPrayerTimes(prayers) {
+        subuh:
+            document.getElementById(
+                "subuh"
+            ),
 
-    prayerTimesToday =
-        prayers;
+        terbit:
+            document.getElementById(
+                "terbit"
+            ),
 
+        zuhur:
+            document.getElementById(
+                "zuhur"
+            ),
 
-    const mapping = {
+        asar:
+            document.getElementById(
+                "asar"
+            ),
 
-        subuh: "subuh",
-        terbit: "terbit",
-        zuhur: "zuhur",
-        asar: "asar",
-        magrib: "magrib",
-        isya: "isya"
+        magrib:
+            document.getElementById(
+                "magrib"
+            ),
 
+        isya:
+            document.getElementById(
+                "isya"
+            )
     };
 
 
-    for (
-        const key in mapping
-    ) {
+    if (elements.subuh) {
 
-        const element =
-            document.getElementById(
-                mapping[key]
+        elements.subuh.textContent =
+            formatPrayerTime(
+                prayers.subuh
             );
+    }
 
 
-        if (element) {
+    if (elements.terbit) {
 
-            element.textContent =
-                formatPrayerTime(
-                    prayers[key]
-                );
-        }
+        elements.terbit.textContent =
+            formatPrayerTime(
+                prayers.terbit
+            );
+    }
+
+
+    if (elements.zuhur) {
+
+        elements.zuhur.textContent =
+            formatPrayerTime(
+                prayers.zuhur
+            );
+    }
+
+
+    if (elements.asar) {
+
+        elements.asar.textContent =
+            formatPrayerTime(
+                prayers.asar
+            );
+    }
+
+
+    if (elements.magrib) {
+
+        elements.magrib.textContent =
+            formatPrayerTime(
+                prayers.magrib
+            );
+    }
+
+
+    if (elements.isya) {
+
+        elements.isya.textContent =
+            formatPrayerTime(
+                prayers.isya
+            );
     }
 
 
@@ -1070,12 +1421,15 @@ function displayPrayerTimes(prayers) {
 
 
 // ======================================================
-// WAKTU SALAT BERIKUTNYA
+// SALAT BERIKUTNYA
 // ======================================================
 
 function updateNextPrayer() {
 
-    if (!prayerTimesToday) {
+    if (
+        prayerTimesToday === null
+    ) {
+
         return;
     }
 
@@ -1086,31 +1440,42 @@ function updateNextPrayer() {
 
     const currentMinutes =
         now.getHours() * 60 +
+
         now.getMinutes() +
+
         now.getSeconds() / 60;
 
 
-    const prayerNames = {
+    const names = {
 
         subuh: "Subuh",
-        zuhur: "Zuhur",
-        asar: "Asar",
-        magrib: "Magrib",
-        isya: "Isya"
 
+        zuhur: "Zuhur",
+
+        asar: "Asar",
+
+        magrib: "Magrib",
+
+        isya: "Isya"
     };
 
 
     const order = [
+
         "subuh",
+
         "zuhur",
+
         "asar",
+
         "magrib",
+
         "isya"
     ];
 
 
-    let nextPrayer = null;
+    let next = null;
+
     let nextMinutes = null;
 
 
@@ -1126,41 +1491,56 @@ function updateNextPrayer() {
             value === null ||
             !isFinite(value)
         ) {
+
             continue;
         }
 
 
+        const prayerMinutes =
+            value * 60;
+
+
         if (
-            value * 60 >
+            prayerMinutes >
             currentMinutes
         ) {
 
-            nextPrayer =
-                key;
+            next = key;
 
             nextMinutes =
-                value * 60;
+                prayerMinutes;
 
             break;
         }
     }
 
 
-    // Jika semua waktu hari ini sudah lewat,
-    // berikutnya adalah Subuh besok.
-    if (nextPrayer === null) {
+    // Setelah Isya,
+    // berikutnya Subuh besok
+    if (
+        next === null
+    ) {
 
-        nextPrayer = "subuh";
+        next = "subuh";
 
         nextMinutes =
-            prayerTimesToday.subuh * 60
-            + 24 * 60;
+            prayerTimesToday.subuh *
+            60 +
+            1440;
     }
 
 
-    const remaining =
+    let remaining =
         nextMinutes -
         currentMinutes;
+
+
+    if (
+        remaining < 0
+    ) {
+
+        remaining = 0;
+    }
 
 
     const hours =
@@ -1177,33 +1557,86 @@ function updateNextPrayer() {
 
     const seconds =
         Math.floor(
-            (remaining -
-             Math.floor(remaining)) *
-            60
+            (
+                remaining -
+                Math.floor(remaining)
+            ) * 60
         );
 
 
-    const nextPrayerElement =
+    const nextElement =
         document.getElementById(
             "nextPrayer"
         );
 
 
-    if (nextPrayerElement) {
+    if (nextElement) {
 
-        nextPrayerElement.textContent =
+        nextElement.textContent =
+
             "⏳ Berikutnya: " +
-            prayerNames[nextPrayer] +
+
+            names[next] +
+
             " — " +
+
             formatPrayerTime(
-                prayerTimesToday[nextPrayer]
+                prayerTimesToday[next]
             ) +
-            " (" +
-            String(hours).padStart(2, "0") +
+
+            " | " +
+
+            String(hours)
+                .padStart(2, "0") +
+
             ":" +
-            String(minutes).padStart(2, "0") +
+
+            String(minutes)
+                .padStart(2, "0") +
+
             ":" +
-            String(seconds).padStart(2, "0") +
-            ")";
+
+            String(seconds)
+                .padStart(2, "0");
     }
 }
+
+
+// ======================================================
+// REFRESH WAKTU SALAT SETIAP HARI
+// ======================================================
+
+let lastDate =
+    new Date().toDateString();
+
+
+setInterval(
+    function () {
+
+        const today =
+            new Date().toDateString();
+
+
+        if (
+            today !== lastDate
+        ) {
+
+            lastDate =
+                today;
+
+
+            if (
+                currentLatitude !== null &&
+                currentLongitude !== null
+            ) {
+
+                calculatePrayerTimes(
+                    currentLatitude,
+                    currentLongitude
+                );
+            }
+        }
+
+    },
+    60000
+);
